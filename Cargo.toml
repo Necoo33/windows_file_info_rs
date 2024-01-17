@@ -1,0 +1,18 @@
+[package]
+name = "windows-file-info"
+version = "0.1.0"
+edition = "2021"
+authors = ["Necdet Arda Etiman"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/Necoo33/windows-file-info-rs"
+categories = ["data-structures", "no-std", "filesystem", "os::windows-apis"]
+keywords = ["windows", "filesystem", "permission", "owner", "size"]
+description = "This crate is for gathering useful infos about Windows entities(archives, directories or reparse point/symlinks) with developer friendly way."
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[lib]
+name = "win_file_info"
