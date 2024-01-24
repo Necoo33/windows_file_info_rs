@@ -6,7 +6,7 @@ This crate is parallel crate of [linux-file-info](https://crates.io/crates/linux
 
 Altough because the windows is very different from linux, this crate made same things with more different ways and with way more code. And also has another functionalities which added specifically for windows kernel.
 
-Warning, in current situtation i couldn't design that crate with lifetimes, borrow checker prevents me to do that. Because of that most probably that functions are not memory efficient and fast. In order to optimize that crate: probably we require way more distribution of the logic or writing it with different language(such as zig or c++) and make rust bindings. In future, i'm planning to rewrite that crate with zig, until that time, use that crate with caution, it may consume too many memory and may run slow.
+Warning, in current situtation i couldn't optimized that crate with lifetimes as possible, borrow checker prevents me to do that. Because of that most probably that functions are not memory efficient and fast. In order to optimize that crate: probably we require way more distribution of the logic or writing it with different language(such as zig or c++) and make rust bindings. In future, firstly i'm planning to optimize that crate with lifetimes, if i can't make it enough, my backup plans are rewrite that crate with zig, until that time, use that crate with caution, it may consume too many memory and may run slow.
 
 If you like that crate, give a star that liblary on [github repo](https://github.com/Necoo33/windows_file_info_rs)
 
@@ -25,7 +25,7 @@ pub struct WindowsEntity {
     pub creation_time: String, 
     pub attributes: String,
     pub last_access_time: String,
-    pub size: i32,
+    pub size: i32, // as bytes
     pub absolute_path: String
 }
 
@@ -60,7 +60,7 @@ fn main(){
     // you can use it:
 
     let current_directory_path = std::env::current_dir().unwrap();
-    let current_directory_path = our_path.as_path().to_str().unwrap();
+    let current_directory_path = current_directory_path.as_path().to_str().unwrap();
     let format_the_windows_path = windows_path_two_backslash(current_directory_path);
 
     // or if you want to have a path with only one backslash and you have a path that has two backslash, you can use that function:

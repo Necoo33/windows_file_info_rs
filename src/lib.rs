@@ -1,21 +1,3 @@
-// windows'da, şu talimatla dosyalara ve klasörlere dair bilgileri getirebilirsin:
-
-// falan klasörün içindeki unsuru getirmek:
-
-/*
-
-Get-ChildItem -Path 'C:\Users\necdet\Desktop' | Format-Table -AutoSize -Wrap Mode, @{Name='Owner'; Expression={(Get-Acl $_.FullName).Owner}}, LastWriteTime, Name, CreationTime, Attributes, LastAccessTime, Length, FullName | Out-String -Width 550
-
-*/
-
-// falan dosya için:
-
-/* 
-
-Get-Item -Path 'C:\Users\necdet\Desktop\Zoom.lnk' | Format-Table -AutoSize -Wrap Mode, @{Name='Owner'; Expression={(Get-Acl $_.FullName).Owner}}, LastWriteTime, Name, CreationTime, Attributes, LastAccessTime, Length, FullName | Out-String -Width 550
-
-*/
-
 use std::{process::{Command, Output}, str::from_utf8, io::Error, env::current_dir};
 
 #[cfg(target_os = "windows")]
@@ -34,9 +16,9 @@ pub struct WindowsEntity {
 }
 
 #[cfg(target_os = "windows")]
-pub struct Permissions {
-    pub entity_types: Vec<String>,
-    pub permissions: Vec<String>
+pub struct Permissions<'a> {
+    pub entity_types: Vec<&'a str>,
+    pub permissions: Vec<&'a str>
 }
 
 
@@ -50,19 +32,19 @@ fn check_entity_permissions(perm_str: &str) -> Permissions {
     for permission_string in split_the_perm_str.into_iter() {
         match permission_string {
             "d" => {
-                entity_types.push("directory".to_string());
-                all_permissions.push("directory".to_string());
+                entity_types.push("directory");
+                all_permissions.push("directory");
             },
             "a" => {
-                entity_types.push("archive".to_string());
-                all_permissions.push("archive".to_string());
+                entity_types.push("archive");
+                all_permissions.push("archive");
             },
-            "r" => all_permissions.push("read-only".to_string()),
-            "h" => all_permissions.push("hidden".to_string()),
-            "s" => all_permissions.push("system".to_string()),
+            "r" => all_permissions.push("read-only"),
+            "h" => all_permissions.push("hidden"),
+            "s" => all_permissions.push("system"),
             "l" => {
-                entity_types.push("reparse-point-or-symlink".to_string());
-                all_permissions.push("reparse-point-or-symlink".to_string());
+                entity_types.push("reparse-point-or-symlink");
+                all_permissions.push("reparse-point-or-symlink");
             },
             &_ => ()
         }
@@ -194,7 +176,8 @@ fn create_windows_entity(get_splitted_line: Vec<&str>) -> WindowsEntity {
     let entity_permissions = check_entity_permissions(&mode);
 
     return WindowsEntity {
-        mode: entity_permissions.permissions, types: entity_permissions.entity_types, 
+        mode: entity_permissions.permissions.into_iter().map(|x| x.to_string()).collect(), 
+        types: entity_permissions.entity_types.into_iter().map(|x| x.to_string()).collect(), 
         owner, last_write_time, name, creation_time, attributes, last_access_time, size, absolute_path: full_name
     };
 }
@@ -433,7 +416,7 @@ pub fn is_directory(path: &str) -> bool {
 
                     let check_the_permissions = check_entity_permissions(split_the_line.trim());
 
-                    if check_the_permissions.entity_types.contains(&"directory".to_string()) {
+                    if check_the_permissions.entity_types.contains(&"directory") {
                         result = true
                     } else {
                         result = false
@@ -475,7 +458,7 @@ pub fn is_archive(path: &str) -> bool {
 
                     let check_the_permissions = check_entity_permissions(split_the_line.trim());
 
-                    if check_the_permissions.entity_types.contains(&"archive".to_string()) {
+                    if check_the_permissions.entity_types.contains(&"archive") {
                         result = true
                     } else {
                         result = false
@@ -517,7 +500,7 @@ pub fn is_reparse_point_or_symlink(path: &str) -> bool {
 
                     let check_the_permissions = check_entity_permissions(split_the_line.trim());
 
-                    if check_the_permissions.entity_types.contains(&"reparse-point-or-symlink".to_string()) {
+                    if check_the_permissions.entity_types.contains(&"reparse-point-or-symlink") {
                         result = true
                     } else {
                         result = false
@@ -559,11 +542,11 @@ pub fn is_directory_and_archive(path: &str) -> bool {
 
                     let check_the_permissions = check_entity_permissions(split_the_line.trim());
 
-                    if check_the_permissions.entity_types.contains(&"archive".to_string()) {
+                    if check_the_permissions.entity_types.contains(&"archive") {
                         result_num = result_num + 1;
                     }
 
-                    if check_the_permissions.entity_types.contains(&"directory".to_string()) {
+                    if check_the_permissions.entity_types.contains(&"directory") {
                         result_num = result_num + 1;
                     }
                 } else {
@@ -607,11 +590,11 @@ pub fn is_directory_and_reparse_point_or_symlink(path: &str) -> bool {
 
                     let check_the_permissions = check_entity_permissions(split_the_line.trim());
 
-                    if check_the_permissions.entity_types.contains(&"directory".to_string()) {
+                    if check_the_permissions.entity_types.contains(&"directory") {
                         result_num = result_num + 1;
                     }
 
-                    if check_the_permissions.entity_types.contains(&"reparse-point-or-symlink".to_string()) {
+                    if check_the_permissions.entity_types.contains(&"reparse-point-or-symlink") {
                         result_num = result_num + 1;
                     }
                 } else {
@@ -655,11 +638,11 @@ pub fn is_archive_and_reparse_point_or_symlink(path: &str) -> bool {
 
                     let check_the_permissions = check_entity_permissions(split_the_line.trim());
 
-                    if check_the_permissions.entity_types.contains(&"archive".to_string()) {
+                    if check_the_permissions.entity_types.contains(&"archive") {
                         result_num = result_num + 1;
                     }
 
-                    if check_the_permissions.entity_types.contains(&"reparse-point-or-symlink".to_string()) {
+                    if check_the_permissions.entity_types.contains(&"reparse-point-or-symlink") {
                         result_num = result_num + 1;
                     }
                 } else {
@@ -703,15 +686,15 @@ pub fn is_directory_and_archive_and_reparse_point_or_symlink(path: &str) -> bool
 
                     let check_the_permissions = check_entity_permissions(split_the_line.trim());
 
-                    if check_the_permissions.entity_types.contains(&"archive".to_string()) {
+                    if check_the_permissions.entity_types.contains(&"archive") {
                         result_num = result_num + 1;
                     }
 
-                    if check_the_permissions.entity_types.contains(&"directory".to_string()) {
+                    if check_the_permissions.entity_types.contains(&"directory") {
                         result_num = result_num + 1;
                     }
 
-                    if check_the_permissions.entity_types.contains(&"reparse-point-or-symlink".to_string()) {
+                    if check_the_permissions.entity_types.contains(&"reparse-point-or-symlink") {
                         result_num = result_num + 1;
                     }
                 } else {
