@@ -57,9 +57,9 @@ fn check_entity_permissions(perm_str: &str) -> Permissions {
 }
 
 #[cfg(target_os = "windows")]
-fn extract_the_output(output: Output) -> Vec<String> {
+fn extract_the_output<'a>(output: &'a Output) -> Vec<&'a str> {
     let our_output = from_utf8(&output.stdout).unwrap();
-    let mut individual_lines: Vec<String> = vec![];
+    let mut individual_lines: Vec<&'a str> = vec![];
     let mut start_num: usize = 0;
     let mut updated_start_num: usize = 0;
 
@@ -79,7 +79,7 @@ fn extract_the_output(output: Output) -> Vec<String> {
             }
 
             if index <= updated_start_num {
-                individual_lines.push(line.to_string());
+                individual_lines.push(line);
             }
 
             if index == updated_start_num {
@@ -92,26 +92,25 @@ fn extract_the_output(output: Output) -> Vec<String> {
 }
 
 #[cfg(target_os = "windows")]
-fn empty_lines_cleanup(lines_of_output: Vec<String>) -> Vec<String> {
+fn empty_lines_cleanup(lines_of_output: Vec<&str>) -> Vec<&str> {
     let empty_string = "".to_string();
 
     return lines_of_output.into_iter().filter(|line| *line != empty_string).collect();
 }
 
 #[cfg(target_os = "windows")]
-fn format_the_output(lines_of_output: Vec<String>) -> Vec<String> {
+fn format_the_output(lines_of_output: Vec<&str>) -> Vec<String> {
     let mut entity_strings_collector = vec![];
     let mut final_vector = vec![];
     let mut concatenation_num: i8 = 0;
-
+    let seperator = " &*& ".to_string();
+    
     for line in lines_of_output.into_iter() {
-        let seperator = " &*& ".to_string();
-
-        match line.as_str() {
+        match line {
             "" => (),
             &_ => {
                 entity_strings_collector.push(line);
-                entity_strings_collector.push(seperator);
+                entity_strings_collector.push(seperator.as_str());
                 concatenation_num = concatenation_num + 1;
             }
         };
@@ -201,7 +200,7 @@ pub fn current_folder_info() -> Vec<WindowsEntity> {
     match get_files_command {
         Ok(answer) => {
             println!("get files command: {}", from_utf8(&answer.stderr).unwrap());
-            let extracted_output = extract_the_output(answer);
+            let extracted_output = extract_the_output(&answer);
 
             let output_cleanup = empty_lines_cleanup(extracted_output);
 
@@ -230,7 +229,7 @@ pub fn other_folder_info(path: &str) -> Result<Vec<WindowsEntity>, Error> {
 
     return match get_files_command {
         Ok(answer) => {
-            let extracted_output = extract_the_output(answer);
+            let extracted_output = extract_the_output(&answer);
 
             let output_cleanup = empty_lines_cleanup(extracted_output);
 
@@ -259,7 +258,7 @@ pub fn entity_info(path: &str) -> Result<WindowsEntity, Error> {
 
     match get_files_command {
         Ok(answer) => {
-            let extracted_output = extract_the_output(answer);
+            let extracted_output = extract_the_output(&answer);
 
             let output_cleanup = empty_lines_cleanup(extracted_output);
 
@@ -729,7 +728,10 @@ mod tests {
 
     #[test]
     fn test_current_folder_info(){
-        println!("your current folder's entities: {:#?}", current_folder_info())
+        let time = std::time::Instant::now();
+        println!("your current folder's entities: {:#?}", current_folder_info());
+        let function_ended = time.elapsed();
+        println!("current_folder_info() function running time as milliseconds: {}", function_ended.as_millis())
     }
 
     #[test]
@@ -739,7 +741,10 @@ mod tests {
         let our_path = format!("C:\\Users\\{}\\Desktop", current_user);
 
         // getting all entities infos of your desktop:
+        let time = std::time::Instant::now();
         println!("other folder's entities: {:#?}", other_folder_info(&our_path).unwrap());
+        let function_ended = time.elapsed();
+        println!("other_folder_info() function running time as milliseconds: {}", function_ended.as_millis())
     }
 
     #[test]
@@ -750,7 +755,10 @@ mod tests {
 
         // getting infos of your current user's desktop directory:
 
-        println!("your desktop folder: {:#?}", entity_info(&our_path).unwrap())
+        let time = std::time::Instant::now();
+        println!("your desktop folder: {:#?}", entity_info(&our_path).unwrap());
+        let function_ended = time.elapsed();
+        println!("entity_info() function running time as milliseconds: {}", function_ended.as_millis())
     }
 
     #[test]
@@ -769,5 +777,45 @@ mod tests {
         let our_path = format!("C:\\Users\\{}\\.cargo\\bin\\cargo.exe", current_user);
 
         assert_eq!(is_archive(&our_path), true)
+    }
+
+    #[test]
+    fn test_is_symlink_or_reparse_point(){
+        let current_user = get_current_user();
+        let format_the_path = format!("C:\\Users\\{}\\OneDrive", current_user);
+
+        assert_eq!(true, is_reparse_point_or_symlink(&format_the_path))
+    }
+
+    #[test]
+    fn test_is_directory_and_archive(){
+        let current_user = get_current_user();
+        let format_the_path = format!("C:\\Users\\{}\\OneDrive", current_user);
+
+        assert_eq!(true, is_directory_and_archive(&format_the_path))
+    }
+
+    #[test]
+    fn test_is_directory_and_reparse_point_or_symlink(){
+        let current_user = get_current_user();
+        let format_the_path = format!("C:\\Users\\{}\\OneDrive", current_user);
+
+        assert_eq!(true, is_directory_and_reparse_point_or_symlink(&format_the_path))
+    }
+
+    #[test]
+    fn test_is_archive_and_reparse_point_or_symlink(){
+        let current_user = get_current_user();
+        let format_the_path = format!("C:\\Users\\{}\\OneDrive", current_user);
+
+        assert_eq!(true, is_archive_and_reparse_point_or_symlink(&format_the_path))
+    }
+
+    #[test]
+    fn test_is_directory_and_archive_and_reparse_point_or_symlink(){
+        let current_user = get_current_user();
+        let format_the_path = format!("C:\\Users\\{}\\OneDrive", current_user);
+
+        assert_eq!(true, is_directory_and_archive_and_reparse_point_or_symlink(&format_the_path))
     }
 }

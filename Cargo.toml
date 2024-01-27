@@ -1,6 +1,6 @@
 [package]
 name = "windows-file-info"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["Necdet Arda Etiman"]
 license = "MIT"

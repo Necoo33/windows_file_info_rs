@@ -6,7 +6,11 @@ This crate is parallel crate of [linux-file-info](https://crates.io/crates/linux
 
 Altough because the windows is very different from linux, this crate made same things with more different ways and with way more code. And also has another functionalities which added specifically for windows kernel.
 
-Warning, in current situtation i couldn't optimized that crate with lifetimes as possible, borrow checker prevents me to do that. Because of that most probably that functions are not memory efficient and fast. In order to optimize that crate: probably we require way more distribution of the logic or writing it with different language(such as zig or c++) and make rust bindings. In future, firstly i'm planning to optimize that crate with lifetimes, if i can't make it enough, my backup plans are rewrite that crate with zig, until that time, use that crate with caution, it may consume too many memory and may run slow.
+Current Situation: According to my tests, in current situation the most important functions, which `current_folder_info()`, `other_folder_info()` and `entity_info()` runs around 500 millisecond speed if there is no many entity to search and index, which always the case for `entity_info()` function and most of the times for `current_folder_info()` function. If there is around 50-60 entity that functions run with half of that speed.
+
+You can check it via running the individual tests, i added a timer for all that three function.
+
+On Future: In order to optimize that crate: probably we require way more distribution of the logic or writing it with different language(such as zig or c++) and make rust bindings. My first plan is optimize that crate with lifetimes, if i can't make it enough, my backup plans are rewrite that crate with zig, until that time, use that crate with caution, it may consume too many memory and may run slow.
 
 If you like that crate, give a star that liblary on [github repo](https://github.com/Necoo33/windows_file_info_rs)
 
