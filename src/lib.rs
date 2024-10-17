@@ -293,6 +293,53 @@ pub fn entity_info(path: &str) -> Result<WindowsEntity, Error> {
     }
 }
 
+pub fn find_entity(name: &str, search_dest: &str) -> Result<WindowsEntity, std::io::Error> {
+    let format_the_command = format!("-Path '{}' -Filter '{}' -Recurse | Select-Object Mode, @{{Name='Owner'; Expression={{(Get-Acl $_.FullName).Owner}}}}, LastWriteTime, Name, CreationTime, Attributes, LastAccessTime, Length, FullName", search_dest, name);
+    let find_entity_command = std::process::Command::new("powershell.exe")
+                                                                    .arg("-Command")
+                                                                    .arg("Get-ChildItem")
+                                                                    .arg(format_the_command)
+                                                                    .output();
+
+    match find_entity_command {
+        Ok(file) => {
+            let parse_answer = String::from_utf8_lossy(&file.stdout);
+
+            let lines = create_windows_entity(parse_answer.split("\n").collect::<Vec<&str>>());
+
+            Ok(lines)
+        },
+        Err(error) => {
+            Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, error))
+        }
+    }
+}
+
+
+pub fn find_entities(name: &str, search_dest: &str) -> Result<Vec<WindowsEntity>, std::io::Error> {
+    let format_the_command = format!("-Path '{}' -Filter '{}' -Recurse | Select-Object Mode, @{{Name='Owner'; Expression={{(Get-Acl $_.FullName).Owner}}}}, LastWriteTime, Name, CreationTime, Attributes, LastAccessTime, Length, FullName", search_dest, name);
+    let find_entity_command = std::process::Command::new("powershell.exe")
+                                                                    .arg("-Command")
+                                                                    .arg("Get-ChildItem")
+                                                                    .arg(format_the_command)
+                                                                    .output();
+
+    match find_entity_command {
+        Ok(file) => {
+            let parse_answer = String::from_utf8_lossy(&file.stdout);
+
+            //let lines = create_windows_entity(parse_answer.split("\n").collect::<Vec<&str>>());
+
+            let lines = split_the_formatted_output(format_the_output(parse_answer.split("\n").collect::<Vec<&str>>()));
+
+            Ok(lines)
+        },
+        Err(error) => {
+            Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, error))
+        }
+    }
+}
+
 // this functions is here for the situations which you need a windows path with double backslash or one backslash on every level and you
 // have only other.
 
@@ -817,5 +864,15 @@ mod tests {
         let format_the_path = format!("C:\\Users\\{}\\OneDrive", current_user);
 
         assert_eq!(true, is_directory_and_archive_and_reparse_point_or_symlink(&format_the_path))
+    }
+
+    #[test]
+    fn test_find_entity(){
+        assert_eq!(true, find_entity("Cargo.toml", "C:\\").is_ok())
+    }
+
+    #[test]
+    fn test_find_entities(){
+        assert_eq!(true, find_entities("Cargo.toml", "C:\\").is_ok())
     }
 }

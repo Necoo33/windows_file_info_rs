@@ -15,3 +15,7 @@ Made some performance improvements on alghorithm: lifetimes implemented for Perm
 ## v0.3.0
 
 Made further optimisations on alghorithm.
+
+## v0.4.0
+
+Added `find_entity()` and `find_entities()` functions for searching entities for given name inside of given path.
